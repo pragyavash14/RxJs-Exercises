@@ -1,30 +1,40 @@
-import { Observable, observable } from 'rxjs';
+import { Observable } from 'rxjs';
+import { ajax } from 'rxjs/ajax';
 
-const observable$ = new Observable<number>((subscriber) => {
-  console.log('observable executed');
-  let counter = 1;
-  const intervalId = setInterval(() => {
-    console.log('emitted', counter);
-    subscriber.next(counter++);
-  }, 2000);
+/** Cold Observable **/
+//the 'ajax' function is a type of creation function that creates an Observable (so we don't have to manually) that will send an HTTP request to provided endpoint
+const ajax$ = ajax<any>('https://random-data-api.com/api/name/random_name');
 
-  return () => {
-    console.log('Teardown logic');
-    clearInterval(intervalId);
-  };
+ajax$.subscribe((data) => {
+  console.log('Subs 1: ', data.response.first_name);
 });
 
-console.log('Before subs');
+ajax$.subscribe((data) => {
+  console.log('Subs 2: ', data.response.first_name);
+});
 
-const subs1 = observable$.subscribe({
-  next: (value) => console.log(value),
-  complete: () => console.log('subs complete!'),
-  error: (err) => console.log(err.message),
+ajax$.subscribe((data) => {
+  console.log('Subs 3: ', data.response.first_name);
+});
+
+/* Hot Observable */
+//A type of observable where the actual source of emission is coming from outside of Observable's logic
+
+const helloButton = document.querySelector('button#hello');
+
+const helloClick$ = new Observable<MouseEvent>((subscriber) => {
+  helloButton.addEventListener('click', (event: MouseEvent) => {
+    subscriber.next(event);
+  });
+});
+
+helloClick$.subscribe((event) => {
+  console.log('Subs 1: ', event.type, event.x, event.y);
 });
 
 setTimeout(() => {
-  console.log('unsubscribing');
-  subs1.unsubscribe();
-}, 10000);
-
-console.log('After subs');
+  console.log('Subs 2 starts');
+  helloClick$.subscribe((event) => {
+    console.log('Subs 2: ', event.type, event.x, event.y);
+  });
+}, 5000);
