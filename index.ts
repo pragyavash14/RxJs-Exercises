@@ -8,7 +8,7 @@
 6. combineLatest: also accepts multiple observables as input, each time any of them emit sth new, it emits latest values by each of them
 */
 
-import { from, Observable, of, Subscriber } from 'rxjs';
+import { from, fromEvent, Observable, of, Subscriber } from 'rxjs';
 
 //OF:
 // const of$ = of('Pragya', 'Simo', 'pintu', 123);
@@ -53,3 +53,33 @@ import { from, Observable, of, Subscriber } from 'rxjs';
 // });
 
 //FromEvent:
+
+const triggerButton = document.querySelector('button#trigger');
+
+// const subscription = fromEvent(triggerButton, 'click').subscribe({
+//   next: (event: MouseEvent) => console.log(event.type, event.x, event.y),
+//   error: (err) => console.log(err),
+//   complete: () => console.log('Completed!'), //dom event, it will never complete, just added this code chumma
+// });
+
+setTimeout(() => {
+  console.log('unsubscribe');
+  subs.unsubscribe();
+}, 5000);
+
+const triggerClick$ = new Observable<MouseEvent>((subscriber) => {
+  const clickHandlerFn = (event: MouseEvent) => {
+    console.log('event callback executed');
+    subscriber.next(event);
+  };
+
+  triggerButton.addEventListener('click', clickHandlerFn);
+
+  return () => {
+    triggerButton.removeEventListener('click', clickHandlerFn);
+  };
+});
+
+const subs = triggerClick$.subscribe((value) =>
+  console.log('My obervable: ', value.type, value.x, value.y)
+);
